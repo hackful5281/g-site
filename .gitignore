@@ -1,0 +1,37 @@
+# 依赖目录由 pnpm install 生成，不提交到仓库。
+node_modules/
+
+# Vite 构建产物由 GitHub Actions 自动生成并发布。
+dist/
+dist-ssr/
+
+# 本地环境变量文件可能包含私密配置，只提交明确允许公开的示例文件。
+.env
+.env.*
+!.env.example
+
+# 日志和包管理器调试输出。
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 编辑器和系统临时文件。
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# 测试、覆盖率和缓存目录。
+coverage/
+.nyc_output/
+.cache/
+.vite/
+
+# 临时文件和本项目历史调试文件。
+tmp/
+temp/
+*.tmp
+_tmp_*
