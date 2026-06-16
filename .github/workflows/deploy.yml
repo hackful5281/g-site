@@ -1,0 +1,68 @@
+# GitHub Pages 自动部署流程。
+# 推送到 main 分支后会安装依赖、构建 Vite 项目，并把 dist 目录发布到 Pages。
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Pages 官方部署需要读取仓库、上传 Pages artifact、写入 Pages 环境的权限。
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同一时间只保留一次 Pages 部署，避免连续 push 时互相覆盖。
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 使用 packageManager 中声明的 pnpm 版本，保证本地和 CI 的包管理器一致。
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      # frozen-lockfile 会强制使用 pnpm-lock.yaml，避免 CI 安装出和本地不同的依赖版本。
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # VITE_BASE_PATH 使用相对路径，适配 GitHub Pages 的仓库子路径部署。
+      - name: Build project
+        run: pnpm build
+        env:
+          VITE_BASE_PATH: ./
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
